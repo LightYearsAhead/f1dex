@@ -102,10 +102,10 @@
          .header-tab-button {
              @apply flex-1 px-2 py-2 text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 dark:focus:ring-offset-slate-800 transition duration-150 ease-in-out text-center;
          }
-         /* Chart container */
+         /* Chart container - Increased height */
          .chart-container {
-             height: 150px; /* Example height */
-             position: relative; /* Needed for Chart.js responsiveness */
+             height: 220px; /* Increased height */
+             position: relative;
          }
 
     </style>
@@ -162,7 +162,7 @@
              { id: 'leclerc', name: 'Charles Leclerc', number: 16, team: 'Ferrari', nationality: '🇲🇨 Monégasque', flagCode: 'mc', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Charles_Leclerc_2016_European_F3_Spa.jpg/440px-Charles_Leclerc_2016_European_F3_Spa.jpg', stats: { championships: 0, wins: 8, podiums: '30', poles: '20', gps: '130', '2025 points': '8', last5Results: [4, 3, 5, 4, 6] }, notes: 'Partnering Lewis Hamilton at Ferrari.' },
              { id: 'russell', name: 'George Russell', number: 63, team: 'Mercedes', nationality: '🇬🇧 British', flagCode: 'gb', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/George_Russell_2017_GP3_Spa_%28cropped%29.jpg/440px-George_Russell_2017_GP3_Spa_%28cropped%29.jpg', stats: { championships: 0, wins: 3, podiums: '10', poles: '1', gps: '110', '2025 points': '35', last5Results: [3, 6, 8, 5, 4] }, notes: 'Lead driver for Mercedes in 2025.' },
              { id: 'antonelli', name: 'Andrea Kimi Antonelli', number: 12, team: 'Mercedes', nationality: '🇮🇹 Italian', flagCode: 'it', imageUrl: placeholderImg, stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: '2', '2025 points': '22', last5Results: [8, 10, null, 11, 9] }, notes: 'Highly anticipated rookie, graduated directly from F2.' },
-             { id: 'norris', name: 'Lando Norris', number: 4, team: 'McLaren', nationality: '🇬🇧 British', flagCode: 'gb', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Lando_Norris_2017_Macau_Grand_Prix.jpg/440px-Lando_Norris_2017_Macau_Grand_Prix.jpg', stats: { championships: 0, wins: 5, podiums: '15', poles: '1', gps: '110', '2025 points': '44', last5Results: [6, 10, 1, 1, 2] }, notes: 'Long-term driver for McLaren.' }, // Updated last5Results
+             { id: 'norris', name: 'Lando Norris', number: 4, team: 'McLaren', nationality: '🇬🇧 British', flagCode: 'gb', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Lando_Norris_2017_Macau_Grand_Prix.jpg/440px-Lando_Norris_2017_Macau_Grand_Prix.jpg', stats: { championships: 0, wins: 5, podiums: '15', poles: '1', gps: '110', '2025 points': '44', last5Results: [6, 10, 1, 1, 2] }, notes: 'Long-term driver for McLaren.' },
              { id: 'piastri', name: 'Oscar Piastri', number: 81, team: 'McLaren', nationality: '🇦🇺 Australian', flagCode: 'au', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Oscar_Piastri_Formula_2_driver.jpg/440px-Oscar_Piastri_Formula_2_driver.jpg', stats: { championships: 0, wins: 3, podiums: '5', poles: '0', gps: '30', '2025 points': '34', last5Results: [5, 4, 2, 7, 3] }, notes: 'Former F2 Champion, entering his third F1 season.' },
              { id: 'alonso', name: 'Fernando Alonso', number: 14, team: 'Aston Martin', nationality: '🇪🇸 Spanish', flagCode: 'es', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Fernando_Alonso_2016_Malaysia.jpg/440px-Fernando_Alonso_2016_Malaysia.jpg', stats: { championships: 2, wins: 32, podiums: '100', poles: '20', gps: '380', '2025 points': '0', last5Results: [9, 7, 11, 8, 10] }, notes: 'Most experienced driver on the grid.' },
              { id: 'stroll', name: 'Lance Stroll', number: 18, team: 'Aston Martin', nationality: '🇨🇦 Canadian', flagCode: 'ca', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Lance_Stroll_2017_Malaysia.jpg/440px-Lance_Stroll_2017_Malaysia.jpg', stats: { championships: 0, wins: 0, podiums: '3', poles: '1', gps: '150', '2025 points': '10', last5Results: [10, 12, 7, 13, 11] }, notes: 'Partnering Alonso at Aston Martin.' },
@@ -283,15 +283,20 @@
                          y: {
                              reverse: true,
                              min: 1,
-                             max: 21,
+                             max: 20.5, // Adjusted max slightly
                              ticks: {
-                                 stepSize: 1,
-                                 color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b',
-                                 callback: function(value) {
-                                     if (value >= 1 && value <= 20) return `P${value}`;
-                                     if (value > 20) return 'DNF/DNS';
-                                     return null;
-                                 }
+                                 color: document.documentElement.classList.contains('dark') ? '#cbd5e1' : '#475569',
+                                 // Updated callback to only show P1, P5, P10, P15, P20
+                                 callback: function(value, index, ticks) {
+                                     if ([1, 5, 10, 15, 20].includes(value)) {
+                                         return `P${value}`;
+                                     }
+                                     // Optionally show DNF for values > 20 if max is higher
+                                     // if (value > 20) return 'DNF';
+                                     return null; // Hide all other labels
+                                 },
+                                 // autoSkip: false, // Removed this - let Chart.js skip internal calculations
+                                 // stepSize: 1 // Keep internal step small if needed
                              },
                              grid: {
                                  color: document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
@@ -299,7 +304,7 @@
                          },
                          x: {
                               ticks: {
-                                 color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b',
+                                 color: document.documentElement.classList.contains('dark') ? '#cbd5e1' : '#475569',
                              },
                              grid: {
                                  display: false
@@ -583,7 +588,6 @@
         function switchTab(newActiveTab) {
             currentActiveTab = newActiveTab;
 
-            // Reset all buttons to inactive state first
             driversTab.classList.remove(...activeTabClasses);
             driversTab.classList.add(...inactiveTabClasses);
             standingsTab.classList.remove(...activeTabClasses);
@@ -593,8 +597,6 @@
             predictTab.classList.remove(...activeTabClasses);
             predictTab.classList.add(...inactiveTabClasses);
 
-
-            // Apply active style to the clicked button and update content
             if (newActiveTab === 'drivers') {
                 driversTab.classList.remove(...inactiveTabClasses);
                 driversTab.classList.add(...activeTabClasses);
