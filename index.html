@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>F1 Driver Dex 2025</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Use Inter font */
         html {
@@ -99,7 +100,12 @@
         }
         /* Styling for header tabs */
          .header-tab-button {
-             @apply flex-1 px-3 py-2 text-xs sm:text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 dark:focus:ring-offset-slate-800 transition duration-150 ease-in-out text-center;
+             @apply flex-1 px-2 py-2 text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 dark:focus:ring-offset-slate-800 transition duration-150 ease-in-out text-center;
+         }
+         /* Chart container */
+         .chart-container {
+             height: 150px; /* Example height */
+             position: relative; /* Needed for Chart.js responsiveness */
          }
 
     </style>
@@ -130,6 +136,9 @@
             <button id="simulator-tab" class="header-tab-button">
                  Simulator
             </button>
+            <button id="predict-tab" class="header-tab-button">
+                 AI Predict
+            </button>
         </div>
 
         <div class="flex flex-row flex-grow overflow-hidden">
@@ -147,41 +156,45 @@
         // --- Driver Data ---
         const placeholderImg = 'https://placehold.co/150x150/cccccc/ffffff?text=No+Image';
         const drivers = [
-             { id: 'verstappen', name: 'Max Verstappen', number: 1, team: 'Red Bull Racing', nationality: '🇳🇱 Dutch', flagCode: 'nl', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Max_Verstappen_2017_Malaysia_3.jpg/440px-Max_Verstappen_2017_Malaysia_3.jpg', stats: { championships: 4, wins: 63, podiums: '100', poles: '30', gps: '190', '2025 points': '36' }, notes: 'Reigning World Champion (4x). Started 2025 with Red Bull.' },
-             { id: 'tsunoda', name: 'Yuki Tsunoda', number: 22, team: 'Red Bull Racing', nationality: '🇯🇵 Japanese', flagCode: 'jp', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Yuki_Tsunoda_2017_Macau_Grand_Prix.jpg/440px-Yuki_Tsunoda_2017_Macau_Grand_Prix.jpg', stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: '70', '2025 points': '3' }, notes: 'Moved from Racing Bulls to Red Bull after Race 2 of 2025.' },
-             { id: 'hamilton', name: 'Lewis Hamilton', number: 44, team: 'Ferrari', nationality: '🇬🇧 British', flagCode: 'gb', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Lewis_Hamilton_2016_Malaysia_2.jpg/440px-Lewis_Hamilton_2016_Malaysia_2.jpg', stats: { championships: 7, wins: 105, podiums: '190', poles: '100', gps: '340', '2025 points': '9' }, notes: 'Joined Ferrari for the 2025 season after a long career with Mercedes.' },
-             { id: 'leclerc', name: 'Charles Leclerc', number: 16, team: 'Ferrari', nationality: '🇲🇨 Monégasque', flagCode: 'mc', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Charles_Leclerc_2016_European_F3_Spa.jpg/440px-Charles_Leclerc_2016_European_F3_Spa.jpg', stats: { championships: 0, wins: 8, podiums: '30', poles: '20', gps: '130', '2025 points': '8' }, notes: 'Partnering Lewis Hamilton at Ferrari.' },
-             { id: 'russell', name: 'George Russell', number: 63, team: 'Mercedes', nationality: '🇬🇧 British', flagCode: 'gb', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/George_Russell_2017_GP3_Spa_%28cropped%29.jpg/440px-George_Russell_2017_GP3_Spa_%28cropped%29.jpg', stats: { championships: 0, wins: 3, podiums: '10', poles: '1', gps: '110', '2025 points': '35' }, notes: 'Lead driver for Mercedes in 2025.' },
-             { id: 'antonelli', name: 'Andrea Kimi Antonelli', number: 12, team: 'Mercedes', nationality: '🇮🇹 Italian', flagCode: 'it', imageUrl: placeholderImg, stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: 'Rookie', '2025 points': '22' }, notes: 'Highly anticipated rookie, graduated directly from F2.' },
-             { id: 'norris', name: 'Lando Norris', number: 4, team: 'McLaren', nationality: '🇬🇧 British', flagCode: 'gb', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Lando_Norris_2017_Macau_Grand_Prix.jpg/440px-Lando_Norris_2017_Macau_Grand_Prix.jpg', stats: { championships: 0, wins: 1, podiums: '15', poles: '1', gps: '110', '2025 points': '44' }, notes: 'Long-term driver for McLaren.' },
-             { id: 'piastri', name: 'Oscar Piastri', number: 81, team: 'McLaren', nationality: '🇦🇺 Australian', flagCode: 'au', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Oscar_Piastri_Formula_2_driver.jpg/440px-Oscar_Piastri_Formula_2_driver.jpg', stats: { championships: 0, wins: 3, podiums: '5', poles: '0', gps: '30', '2025 points': '34' }, notes: 'Former F2 Champion, entering his third F1 season.' },
-             { id: 'alonso', name: 'Fernando Alonso', number: 14, team: 'Aston Martin', nationality: '🇪🇸 Spanish', flagCode: 'es', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Fernando_Alonso_2016_Malaysia.jpg/440px-Fernando_Alonso_2016_Malaysia.jpg', stats: { championships: 2, wins: 32, podiums: '100', poles: '20', gps: '380', '2025 points': '0' }, notes: 'Most experienced driver on the grid.' },
-             { id: 'stroll', name: 'Lance Stroll', number: 18, team: 'Aston Martin', nationality: '🇨🇦 Canadian', flagCode: 'ca', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Lance_Stroll_2017_Malaysia.jpg/440px-Lance_Stroll_2017_Malaysia.jpg', stats: { championships: 0, wins: 0, podiums: '3', poles: '1', gps: '150', '2025 points': '10' }, notes: 'Partnering Alonso at Aston Martin.' },
-             { id: 'gasly', name: 'Pierre Gasly', number: 10, team: 'Alpine', nationality: '🇫🇷 French', flagCode: 'fr', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Pierre_Gasly_2017_Malaysia.jpg/440px-Pierre_Gasly_2017_Malaysia.jpg', stats: { championships: 0, wins: 1, podiums: '4', poles: '0', gps: '140', '2025 points': '0' }, notes: 'Continuing with Alpine.' },
-             { id: 'doohan', name: 'Jack Doohan', number: 61, team: 'Alpine', nationality: '🇦🇺 Australian', flagCode: 'au', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Jack_Doohan_F2_2022_%28cropped%29.jpg/440px-Jack_Doohan_F2_2022_%28cropped%29.jpg', stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: 'Rookie', '2025 points': '0' }, notes: 'Rookie driver for Alpine in 2025.' },
-             { id: 'albon', name: 'Alex Albon', number: 23, team: 'Williams', nationality: '🇹🇭 Thai', flagCode: 'th', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Alexander_Albon_2017_GP3_Spa_%28cropped%29.jpg/440px-Alexander_Albon_2017_GP3_Spa_%28cropped%29.jpg', stats: { championships: 0, wins: 0, podiums: '2', poles: '0', gps: '90', '2025 points': '16' }, notes: 'Lead driver for Williams.' },
-             { id: 'sainz', name: 'Carlos Sainz', number: 55, team: 'Williams', nationality: '🇪🇸 Spanish', flagCode: 'es', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Carlos_Sainz_Jr_2016_Malaysia.jpg/440px-Carlos_Sainz_Jr_2016_Malaysia.jpg', stats: { championships: 0, wins: 4, podiums: '20', poles: '5', gps: '190', '2025 points': '1' }, notes: 'Joined Williams for 2025 after leaving Ferrari.' },
-             { id: 'lawson', name: 'Liam Lawson', number: 40, team: 'Racing Bulls', nationality: '🇳🇿 Kiwi', flagCode: 'nz', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Liam_Lawson_DTM_2021_Norisring_%28cropped%29.jpg/440px-Liam_Lawson_DTM_2021_Norisring_%28cropped%29.jpg', stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: '5', '2025 points': '0' }, notes: 'Started 2025 at Red Bull, moved back to Racing Bulls after Race 2.' },
-             { id: 'hadjar', name: 'Isack Hadjar', number: 37, team: 'Racing Bulls', nationality: '🇫🇷 French', flagCode: 'fr', imageUrl: placeholderImg, stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: 'Rookie', '2025 points': '0' }, notes: 'Rookie driver, former F2 competitor.' },
-             { id: 'hulkenberg', name: 'Nico Hülkenberg', number: 27, team: 'Kick Sauber', nationality: '🇩🇪 German', flagCode: 'de', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Nico_H%C3%BClkenberg_2016_Malaysia.jpg/440px-Nico_H%C3%BClkenberg_2016_Malaysia.jpg', stats: { championships: 0, wins: 0, podiums: '0', poles: '1', gps: '210', '2025 points': '6' }, notes: 'Joined Sauber (future Audi) for 2025.' },
-             { id: 'bortoleto', name: 'Gabriel Bortoleto', number: 3, team: 'Kick Sauber', nationality: '🇧🇷 Brazilian', flagCode: 'br', imageUrl: placeholderImg, stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: 'Rookie', '2025 points': '0' }, notes: 'Rookie driver, 2023 F3 Champion, 2024 F2 Champion.' },
-             { id: 'bearman', name: 'Oliver Bearman', number: 50, team: 'Haas', nationality: '🇬🇧 British', flagCode: 'gb', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Oliver_Bearman_F2_2023_%28cropped%29.jpg/440px-Oliver_Bearman_F2_2023_%28cropped%29.jpg', stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: '2', '2025 points': '4' }, notes: 'Rookie driver, made F1 debut as reserve for Ferrari in 2024.' },
-             { id: 'ocon', name: 'Esteban Ocon', number: 31, team: 'Haas', nationality: '🇫🇷 French', flagCode: 'fr', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Esteban_Ocon_2017_Malaysia_2.jpg/440px-Esteban_Ocon_2017_Malaysia_2.jpg', stats: { championships: 0, wins: 1, podiums: '3', poles: '0', gps: '140', '2025 points': '10' }, notes: 'Joined Haas for the 2025 season after leaving Alpine.' }
+             { id: 'verstappen', name: 'Max Verstappen', number: 1, team: 'Red Bull Racing', nationality: '🇳🇱 Dutch', flagCode: 'nl', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Max_Verstappen_2017_Malaysia_3.jpg/440px-Max_Verstappen_2017_Malaysia_3.jpg', stats: { championships: 4, wins: 63, podiums: '100', poles: '30', gps: '190', '2025 points': '36', last5Results: [1, 2, 1, 3, 1] }, notes: 'Reigning World Champion (4x). Started 2025 with Red Bull.' },
+             { id: 'tsunoda', name: 'Yuki Tsunoda', number: 22, team: 'Red Bull Racing', nationality: '🇯🇵 Japanese', flagCode: 'jp', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Yuki_Tsunoda_2017_Macau_Grand_Prix.jpg/440px-Yuki_Tsunoda_2017_Macau_Grand_Prix.jpg', stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: '70', '2025 points': '3', last5Results: [14, 11, 9, 15, 12] }, notes: 'Moved from Racing Bulls to Red Bull after Race 2 of 2025.' },
+             { id: 'hamilton', name: 'Lewis Hamilton', number: 44, team: 'Ferrari', nationality: '🇬🇧 British', flagCode: 'gb', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Lewis_Hamilton_2016_Malaysia_2.jpg/440px-Lewis_Hamilton_2016_Malaysia_2.jpg', stats: { championships: 7, wins: 105, podiums: '190', poles: '100', gps: '340', '2025 points': '9', last5Results: [7, 5, 4, 6, 8] }, notes: 'Joined Ferrari for the 2025 season after a long career with Mercedes.' },
+             { id: 'leclerc', name: 'Charles Leclerc', number: 16, team: 'Ferrari', nationality: '🇲🇨 Monégasque', flagCode: 'mc', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Charles_Leclerc_2016_European_F3_Spa.jpg/440px-Charles_Leclerc_2016_European_F3_Spa.jpg', stats: { championships: 0, wins: 8, podiums: '30', poles: '20', gps: '130', '2025 points': '8', last5Results: [4, 3, 5, 4, 6] }, notes: 'Partnering Lewis Hamilton at Ferrari.' },
+             { id: 'russell', name: 'George Russell', number: 63, team: 'Mercedes', nationality: '🇬🇧 British', flagCode: 'gb', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/George_Russell_2017_GP3_Spa_%28cropped%29.jpg/440px-George_Russell_2017_GP3_Spa_%28cropped%29.jpg', stats: { championships: 0, wins: 3, podiums: '10', poles: '1', gps: '110', '2025 points': '35', last5Results: [3, 6, 8, 5, 4] }, notes: 'Lead driver for Mercedes in 2025.' },
+             { id: 'antonelli', name: 'Andrea Kimi Antonelli', number: 12, team: 'Mercedes', nationality: '🇮🇹 Italian', flagCode: 'it', imageUrl: placeholderImg, stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: '2', '2025 points': '22', last5Results: [8, 10, null, 11, 9] }, notes: 'Highly anticipated rookie, graduated directly from F2.' },
+             { id: 'norris', name: 'Lando Norris', number: 4, team: 'McLaren', nationality: '🇬🇧 British', flagCode: 'gb', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Lando_Norris_2017_Macau_Grand_Prix.jpg/440px-Lando_Norris_2017_Macau_Grand_Prix.jpg', stats: { championships: 0, wins: 5, podiums: '15', poles: '1', gps: '110', '2025 points': '44', last5Results: [6, 10, 1, 1, 2] }, notes: 'Long-term driver for McLaren.' }, // Updated last5Results
+             { id: 'piastri', name: 'Oscar Piastri', number: 81, team: 'McLaren', nationality: '🇦🇺 Australian', flagCode: 'au', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Oscar_Piastri_Formula_2_driver.jpg/440px-Oscar_Piastri_Formula_2_driver.jpg', stats: { championships: 0, wins: 3, podiums: '5', poles: '0', gps: '30', '2025 points': '34', last5Results: [5, 4, 2, 7, 3] }, notes: 'Former F2 Champion, entering his third F1 season.' },
+             { id: 'alonso', name: 'Fernando Alonso', number: 14, team: 'Aston Martin', nationality: '🇪🇸 Spanish', flagCode: 'es', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Fernando_Alonso_2016_Malaysia.jpg/440px-Fernando_Alonso_2016_Malaysia.jpg', stats: { championships: 2, wins: 32, podiums: '100', poles: '20', gps: '380', '2025 points': '0', last5Results: [9, 7, 11, 8, 10] }, notes: 'Most experienced driver on the grid.' },
+             { id: 'stroll', name: 'Lance Stroll', number: 18, team: 'Aston Martin', nationality: '🇨🇦 Canadian', flagCode: 'ca', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Lance_Stroll_2017_Malaysia.jpg/440px-Lance_Stroll_2017_Malaysia.jpg', stats: { championships: 0, wins: 0, podiums: '3', poles: '1', gps: '150', '2025 points': '10', last5Results: [10, 12, 7, 13, 11] }, notes: 'Partnering Alonso at Aston Martin.' },
+             { id: 'gasly', name: 'Pierre Gasly', number: 10, team: 'Alpine', nationality: '🇫🇷 French', flagCode: 'fr', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Pierre_Gasly_2017_Malaysia.jpg/440px-Pierre_Gasly_2017_Malaysia.jpg', stats: { championships: 0, wins: 1, podiums: '4', poles: '0', gps: '140', '2025 points': '0', last5Results: [11, 9, 13, 10, 14] }, notes: 'Continuing with Alpine.' },
+             { id: 'doohan', name: 'Jack Doohan', number: 61, team: 'Alpine', nationality: '🇦🇺 Australian', flagCode: 'au', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Jack_Doohan_F2_2022_%28cropped%29.jpg/440px-Jack_Doohan_F2_2022_%28cropped%29.jpg', stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: 'Rookie', '2025 points': '0', last5Results: [null, null, null, null, null] }, notes: 'Rookie driver for Alpine in 2025.' },
+             { id: 'albon', name: 'Alex Albon', number: 23, team: 'Williams', nationality: '🇹🇭 Thai', flagCode: 'th', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Alexander_Albon_2017_GP3_Spa_%28cropped%29.jpg/440px-Alexander_Albon_2017_GP3_Spa_%28cropped%29.jpg', stats: { championships: 0, wins: 0, podiums: '2', poles: '0', gps: '90', '2025 points': '16', last5Results: [6, 11, 10, 9, 7] }, notes: 'Lead driver for Williams.' },
+             { id: 'sainz', name: 'Carlos Sainz', number: 55, team: 'Williams', nationality: '🇪🇸 Spanish', flagCode: 'es', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Carlos_Sainz_Jr_2016_Malaysia.jpg/440px-Carlos_Sainz_Jr_2016_Malaysia.jpg', stats: { championships: 0, wins: 4, podiums: '20', poles: '5', gps: '190', '2025 points': '1', last5Results: [13, 8, 6, null, 13] }, notes: 'Joined Williams for 2025 after leaving Ferrari.' },
+             { id: 'lawson', name: 'Liam Lawson', number: 40, team: 'Racing Bulls', nationality: '🇳🇿 Kiwi', flagCode: 'nz', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Liam_Lawson_DTM_2021_Norisring_%28cropped%29.jpg/440px-Liam_Lawson_DTM_2021_Norisring_%28cropped%29.jpg', stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: '5', '2025 points': '0', last5Results: [16, 13, 12, 14, 15] }, notes: 'Started 2025 at Red Bull, moved back to Racing Bulls after Race 2.' },
+             { id: 'hadjar', name: 'Isack Hadjar', number: 37, team: 'Racing Bulls', nationality: '🇫🇷 French', flagCode: 'fr', imageUrl: placeholderImg, stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: 'Rookie', '2025 points': '0', last5Results: [null, null, null, null, null] }, notes: 'Rookie driver, former F2 competitor.' },
+             { id: 'hulkenberg', name: 'Nico Hülkenberg', number: 27, team: 'Kick Sauber', nationality: '🇩🇪 German', flagCode: 'de', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Nico_H%C3%BClkenberg_2016_Malaysia.jpg/440px-Nico_H%C3%BClkenberg_2016_Malaysia.jpg', stats: { championships: 0, wins: 0, podiums: '0', poles: '1', gps: '210', '2025 points': '6', last5Results: [12, 15, 14, 17, 16] }, notes: 'Joined Sauber (future Audi) for 2025.' },
+             { id: 'bortoleto', name: 'Gabriel Bortoleto', number: 3, team: 'Kick Sauber', nationality: '🇧🇷 Brazilian', flagCode: 'br', imageUrl: placeholderImg, stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: '2', '2025 points': '0', last5Results: [15, 18, null, 16, 17] }, notes: 'Rookie driver, 2023 F3 Champion, 2024 F2 Champion.' },
+             { id: 'bearman', name: 'Oliver Bearman', number: 50, team: 'Haas', nationality: '🇬🇧 British', flagCode: 'gb', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Oliver_Bearman_F2_2023_%28cropped%29.jpg/440px-Oliver_Bearman_F2_2023_%28cropped%29.jpg', stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: '2', '2025 points': '4', last5Results: [18, 14, 17, null, 19] }, notes: 'Rookie driver, made F1 debut as reserve for Ferrari in 2024.' },
+             { id: 'ocon', name: 'Esteban Ocon', number: 31, team: 'Haas', nationality: '🇫🇷 French', flagCode: 'fr', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Esteban_Ocon_2017_Malaysia_2.jpg/440px-Esteban_Ocon_2017_Malaysia_2.jpg', stats: { championships: 0, wins: 1, podiums: '3', poles: '0', gps: '140', '2025 points': '10', last5Results: [17, 16, 15, 12, 18] }, notes: 'Joined Haas for the 2025 season after leaving Alpine.' }
         ];
 
+        // --- DOM Elements ---
         const driverDisplayElement = document.getElementById('driver-display-wrapper');
         const driversTab = document.getElementById('drivers-tab');
         const standingsTab = document.getElementById('standings-tab');
         const simulatorTab = document.getElementById('simulator-tab');
+        const predictTab = document.getElementById('predict-tab');
         const sidebar = document.getElementById('sidebar');
         const sidebarContentContainer = document.getElementById('sidebar-content-container');
         const darkModeToggle = document.getElementById('dark-mode-toggle');
         const darkModeIcon = document.getElementById('dark-mode-icon');
         const htmlElement = document.documentElement;
         let driverListElement;
+        let chartInstance = null;
 
-        const activeTabClasses = ['bg-red-600', 'text-white', 'shadow-md', 'border-red-600', 'dark:bg-red-500', 'dark:border-red-500'];
-        const inactiveTabClasses = ['bg-transparent', 'text-slate-600', 'hover:bg-slate-100', 'hover:border-slate-300', 'dark:text-slate-300', 'dark:hover:bg-slate-700', 'dark:hover:border-slate-600', 'border-slate-300', 'dark:border-slate-600', 'border'];
+        // --- Constants for Styling ---
+        const activeTabClasses = ['bg-red-600', 'text-white', 'shadow-md', 'dark:bg-red-500'];
+        const inactiveTabClasses = ['bg-slate-200', 'text-slate-700', 'hover:bg-slate-300', 'dark:bg-slate-700', 'dark:text-slate-200', 'dark:hover:bg-slate-600', 'shadow-sm'];
         const iconUrl = {
             championships: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/trophy.svg',
             wins: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/medal.svg',
@@ -193,9 +206,13 @@
             sun: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/sun.svg'
         };
 
+        // --- State Variable ---
         let currentActiveTab = 'drivers';
 
+        // --- Functions ---
+
         function displayDriver(driver) {
+            currentActiveTab = 'drivers';
             const nationalityName = driver.nationality.split(' ').slice(1).join(' ') || '';
             const driverHtml = `
                 <div class="bg-white dark:bg-slate-800 rounded-lg shadow-md w-full max-w-lg mx-auto border border-slate-200 dark:border-slate-700 overflow-hidden">
@@ -228,8 +245,99 @@
                          <h3 class="text-sm font-semibold mb-1 text-slate-600 dark:text-slate-200">Notes</h3>
                          <p class="text-sm text-slate-500 dark:text-slate-300 italic">${driver.notes || 'No additional notes.'}</p>
                     </div>
+                    <div class="p-6 border-t border-slate-100 dark:border-slate-700">
+                        <h3 class="text-lg font-semibold mb-3 text-slate-700 dark:text-slate-200">Recent Form (Last 5 Races - Placeholder Data)</h3>
+                        <div class="chart-container">
+                            <canvas id="form-chart-${driver.id}"></canvas>
+                        </div>
+                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-2">*Lower position is better. Null indicates DNF/DNS.</p>
+                    </div>
                 </div>`;
              driverDisplayElement.innerHTML = driverHtml;
+
+             const canvasId = `form-chart-${driver.id}`;
+             const ctx = document.getElementById(canvasId)?.getContext('2d');
+
+             if (ctx) {
+                 Chart.getChart(canvasId)?.destroy();
+
+                 const chartData = {
+                     labels: ['Race -4', 'Race -3', 'Race -2', 'Race -1', 'Last Race'],
+                     datasets: [{
+                         label: 'Finishing Position',
+                         data: driver.stats.last5Results || [],
+                         borderColor: 'rgb(220, 38, 38)',
+                         backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                         tension: 0.1,
+                         spanGaps: true,
+                         pointRadius: 3,
+                         pointHoverRadius: 5,
+                         pointBackgroundColor: 'rgb(220, 38, 38)'
+                     }]
+                 };
+
+                 const chartOptions = {
+                     responsive: true,
+                     maintainAspectRatio: false,
+                     scales: {
+                         y: {
+                             reverse: true,
+                             min: 1,
+                             max: 21,
+                             ticks: {
+                                 stepSize: 1,
+                                 color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b',
+                                 callback: function(value) {
+                                     if (value >= 1 && value <= 20) return `P${value}`;
+                                     if (value > 20) return 'DNF/DNS';
+                                     return null;
+                                 }
+                             },
+                             grid: {
+                                 color: document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
+                             }
+                         },
+                         x: {
+                              ticks: {
+                                 color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b',
+                             },
+                             grid: {
+                                 display: false
+                             }
+                         }
+                     },
+                     plugins: {
+                         legend: {
+                             display: false
+                         },
+                         tooltip: {
+                             callbacks: {
+                                 label: function(context) {
+                                     let label = context.dataset.label || '';
+                                     if (label) {
+                                         label += ': ';
+                                     }
+                                     const value = context.parsed.y;
+                                     if (value !== null && value >= 1 && value <= 20) {
+                                         label += `P${value}`;
+                                     } else {
+                                         label += 'DNF/DNS';
+                                     }
+                                     return label;
+                                 }
+                             }
+                         }
+                     }
+                 };
+
+                 chartInstance = new Chart(ctx, {
+                     type: 'line',
+                     data: chartData,
+                     options: chartOptions
+                 });
+             } else {
+                 console.error(`Canvas element with id ${canvasId} not found.`);
+             }
         }
 
         function populateDriverList() {
@@ -406,17 +514,87 @@
             driverDisplayElement.innerHTML = tableHtml;
         }
 
+        function displayWeightedPrediction(p1Ranks, p2Ranks) {
+             const combinedRanks = {};
+             drivers.forEach(driver => {
+                 const p1Rank = p1Ranks[driver.id] || 21;
+                 const p2Rank = p2Ranks[driver.id] || 21;
+                 combinedRanks[driver.id] = (p1Rank + p2Rank) / 2;
+             });
+
+             const weightedScores = drivers.map(driver => {
+                 const avgRank = combinedRanks[driver.id];
+                 const score = (21 - avgRank) + (Math.random() - 0.5);
+                 return { ...driver, weightedScore: score };
+             });
+
+             weightedScores.sort((a, b) => b.weightedScore - a.weightedScore);
+
+             const racePoints = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+             const predictedDrivers = weightedScores.map((driver, index) => {
+                 const currentPoints = Number(driver.stats['2025 points']) || 0;
+                 const pointsEarned = index < racePoints.length ? racePoints[index] : 0;
+                 return {
+                     ...driver,
+                     predictedTotalPoints: currentPoints + pointsEarned,
+                     predictedRacePos: index + 1,
+                     predictedPointsEarned: pointsEarned
+                 };
+             });
+
+             predictedDrivers.sort((a, b) => b.predictedTotalPoints - a.predictedTotalPoints);
+
+             let tableHtml = `
+                <h3 class="font-semibold text-xl mb-1 p-2 text-center text-slate-700 dark:text-slate-200">AI Simulated Standings (Japanese GP)</h3>
+                <p class="text-center text-xs text-slate-500 dark:text-slate-400 mb-4">
+                    <span class="font-bold text-red-600 dark:text-red-400">Disclaimer:</span> This is a basic simulation based on P1/P2 average rank + randomness. Not a real prediction.
+                </p>
+                <div class="overflow-x-auto rounded-lg shadow border border-slate-200 dark:border-slate-700">
+                    <table class="standings-table mx-auto">
+                        <thead>
+                            <tr>
+                                <th class="w-1/12 text-center">Pred. Rank</th>
+                                <th class="w-4/12">Driver</th>
+                                <th class="w-4/12">Team</th>
+                                <th class="w-1/12 text-right">Race Pts</th>
+                                <th class="w-2/12 text-right">Pred. Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+            predictedDrivers.forEach((driver, index) => {
+                const baseRowClasses = 'border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-150';
+                let rankClass = '';
+                tableHtml += `
+                    <tr class="${baseRowClasses} ${rankClass}">
+                        <td class="text-center font-medium text-slate-600 dark:text-slate-100">${index + 1}</td>
+                        <td class="text-slate-800 dark:text-slate-100">${driver.name}</td>
+                        <td class="text-slate-600 dark:text-slate-100">${driver.team}</td>
+                        <td class="text-right text-blue-600 dark:text-blue-400 text-xs">+${driver.predictedPointsEarned}</td>
+                        <td class="text-right font-semibold text-slate-800 dark:text-slate-100">${driver.predictedTotalPoints}</td>
+                    </tr>`;
+            });
+
+            tableHtml += `</tbody></table></div>`;
+            driverDisplayElement.innerHTML = tableHtml;
+        }
+
 
         function switchTab(newActiveTab) {
             currentActiveTab = newActiveTab;
 
+            // Reset all buttons to inactive state first
             driversTab.classList.remove(...activeTabClasses);
             driversTab.classList.add(...inactiveTabClasses);
             standingsTab.classList.remove(...activeTabClasses);
             standingsTab.classList.add(...inactiveTabClasses);
             simulatorTab.classList.remove(...activeTabClasses);
             simulatorTab.classList.add(...inactiveTabClasses);
+            predictTab.classList.remove(...activeTabClasses);
+            predictTab.classList.add(...inactiveTabClasses);
 
+
+            // Apply active style to the clicked button and update content
             if (newActiveTab === 'drivers') {
                 driversTab.classList.remove(...inactiveTabClasses);
                 driversTab.classList.add(...activeTabClasses);
@@ -439,6 +617,19 @@
                  driverDisplayElement.classList.remove('md:w-2/3', 'lg:w-3/4');
                  driverDisplayElement.classList.add('md:w-full');
                  displaySimulatorInput();
+            } else if (newActiveTab === 'predict') {
+                 predictTab.classList.remove(...inactiveTabClasses);
+                 predictTab.classList.add(...activeTabClasses);
+                 sidebar.classList.add('hidden');
+                 driverDisplayElement.classList.remove('md:w-2/3', 'lg:w-3/4');
+                 driverDisplayElement.classList.add('md:w-full');
+                 const p1RanksById = { piastri: 1, norris: 2, hadjar: 3, hamilton: 4, lawson: 5, russell: 6, leclerc: 7, verstappen: 8, gasly: 9, sainz: 10, albon: 11, hulkenberg: 12, bortoleto: 13, ocon: 14, bearman: 15, antonelli: 16, alonso: 17, tsunoda: 18, stroll: 19, doohan: 20 };
+                 const p2RanksById = { norris: 1, russell: 2, leclerc: 3, hamilton: 4, verstappen: 5, tsunoda: 6, alonso: 7, hadjar: 8, antonelli: 9, sainz: 10, albon: 11, lawson: 12, gasly: 13, piastri: 14, stroll: 15, hulkenberg: 16, bearman: 17, ocon: 18, bortoleto: 19, doohan: 20 };
+                 drivers.forEach(d => {
+                     if (!p1RanksById.hasOwnProperty(d.id)) p1RanksById[d.id] = 21;
+                     if (!p2RanksById.hasOwnProperty(d.id)) p2RanksById[d.id] = 21;
+                 });
+                 displayWeightedPrediction(p1RanksById, p2RanksById);
             }
         }
 
@@ -454,19 +645,24 @@
             }
             localStorage.setItem('theme', theme);
 
-            if(driversTab && standingsTab && simulatorTab) {
+            if(driversTab && standingsTab && simulatorTab && predictTab) {
                  let currentlyActiveButton;
                  if (currentActiveTab === 'drivers') currentlyActiveButton = driversTab;
                  else if (currentActiveTab === 'standings') currentlyActiveButton = standingsTab;
-                 else currentlyActiveButton = simulatorTab;
+                 else if (currentActiveTab === 'simulator') currentlyActiveButton = simulatorTab;
+                 else currentlyActiveButton = predictTab;
 
                  driversTab.classList.remove(...activeTabClasses, ...inactiveTabClasses);
                  standingsTab.classList.remove(...activeTabClasses, ...inactiveTabClasses);
                  simulatorTab.classList.remove(...activeTabClasses, ...inactiveTabClasses);
+                 predictTab.classList.remove(...activeTabClasses, ...inactiveTabClasses);
+
 
                  driversTab.classList.add(...inactiveTabClasses);
                  standingsTab.classList.add(...inactiveTabClasses);
                  simulatorTab.classList.add(...inactiveTabClasses);
+                 predictTab.classList.add(...inactiveTabClasses);
+
 
                  if (currentlyActiveButton) {
                     currentlyActiveButton.classList.remove(...inactiveTabClasses);
@@ -484,6 +680,7 @@
         if(driversTab) driversTab.addEventListener('click', () => switchTab('drivers'));
         if(standingsTab) standingsTab.addEventListener('click', () => switchTab('standings'));
         if(simulatorTab) simulatorTab.addEventListener('click', () => switchTab('simulator'));
+        if(predictTab) predictTab.addEventListener('click', () => switchTab('predict'));
         if(darkModeToggle) darkModeToggle.addEventListener('click', toggleDarkMode);
 
         driverDisplayElement.addEventListener('click', function(event) {
@@ -496,7 +693,7 @@
         });
 
 
-        if (sidebarContentContainer && driverDisplayElement && driversTab && standingsTab && simulatorTab && darkModeIcon && htmlElement && sidebar) {
+        if (sidebarContentContainer && driverDisplayElement && driversTab && standingsTab && simulatorTab && predictTab && darkModeIcon && htmlElement && sidebar) {
             const initialTheme = localStorage.getItem('theme') ||
                                (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             applyTheme(initialTheme);
