@@ -102,9 +102,9 @@
          .header-tab-button {
              @apply flex-1 px-2 py-2 text-xs font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 dark:focus:ring-offset-slate-800 transition duration-150 ease-in-out text-center;
          }
-         /* Chart container - Increased height */
+         /* Chart container */
          .chart-container {
-             height: 220px; /* Increased height */
+             height: 220px;
              position: relative;
          }
 
@@ -283,20 +283,15 @@
                          y: {
                              reverse: true,
                              min: 1,
-                             max: 20.5, // Adjusted max slightly
+                             max: 20.5,
                              ticks: {
                                  color: document.documentElement.classList.contains('dark') ? '#cbd5e1' : '#475569',
-                                 // Updated callback to only show P1, P5, P10, P15, P20
                                  callback: function(value, index, ticks) {
                                      if ([1, 5, 10, 15, 20].includes(value)) {
                                          return `P${value}`;
                                      }
-                                     // Optionally show DNF for values > 20 if max is higher
-                                     // if (value > 20) return 'DNF';
-                                     return null; // Hide all other labels
+                                     return null;
                                  },
-                                 // autoSkip: false, // Removed this - let Chart.js skip internal calculations
-                                 // stepSize: 1 // Keep internal step small if needed
                              },
                              grid: {
                                  color: document.documentElement.classList.contains('dark') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
@@ -580,7 +575,11 @@
                     </tr>`;
             });
 
-            tableHtml += `</tbody></table></div>`;
+            tableHtml += `</tbody></table></div>
+             <div class="text-center mt-4">
+                 <button id="resimulate-button" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-slate-800 transition-colors duration-150">Simulate Again</button>
+             </div>
+             `;
             driverDisplayElement.innerHTML = tableHtml;
         }
 
@@ -676,15 +675,42 @@
         function toggleDarkMode() {
             const newTheme = htmlElement.classList.contains('dark') ? 'light' : 'dark';
             applyTheme(newTheme);
-            switchTab(currentActiveTab);
+            // Rerender current view after theme change
+            if (currentActiveTab === 'drivers') {
+                 const selectedLi = driverListElement?.querySelector('.driver-list-item.selected');
+                 if (selectedLi) {
+                     const selectedDriver = drivers.find(d => d.id === selectedLi.dataset.driverId);
+                     if (selectedDriver) displayDriver(selectedDriver);
+                     else displayRandomDriver();
+                 } else {
+                      displayRandomDriver();
+                 }
+             } else if (currentActiveTab === 'standings') {
+                 displayDriverStandings();
+             } else if (currentActiveTab === 'simulator') {
+                  // Check if input or results view is showing (more complex state needed)
+                  // For simplicity, just re-display input view on theme toggle
+                  displaySimulatorInput();
+             } else if (currentActiveTab === 'predict') {
+                  // Re-run prediction display
+                  const p1RanksById = { piastri: 1, norris: 2, hadjar: 3, hamilton: 4, lawson: 5, russell: 6, leclerc: 7, verstappen: 8, gasly: 9, sainz: 10, albon: 11, hulkenberg: 12, bortoleto: 13, ocon: 14, bearman: 15, antonelli: 16, alonso: 17, tsunoda: 18, stroll: 19, doohan: 20 };
+                  const p2RanksById = { norris: 1, russell: 2, leclerc: 3, hamilton: 4, verstappen: 5, tsunoda: 6, alonso: 7, hadjar: 8, antonelli: 9, sainz: 10, albon: 11, lawson: 12, gasly: 13, piastri: 14, stroll: 15, hulkenberg: 16, bearman: 17, ocon: 18, bortoleto: 19, doohan: 20 };
+                  drivers.forEach(d => {
+                      if (!p1RanksById.hasOwnProperty(d.id)) p1RanksById[d.id] = 21;
+                      if (!p2RanksById.hasOwnProperty(d.id)) p2RanksById[d.id] = 21;
+                  });
+                  displayWeightedPrediction(p1RanksById, p2RanksById);
+             }
         }
 
+        // --- Event Listeners ---
         if(driversTab) driversTab.addEventListener('click', () => switchTab('drivers'));
         if(standingsTab) standingsTab.addEventListener('click', () => switchTab('standings'));
         if(simulatorTab) simulatorTab.addEventListener('click', () => switchTab('simulator'));
         if(predictTab) predictTab.addEventListener('click', () => switchTab('predict'));
         if(darkModeToggle) darkModeToggle.addEventListener('click', toggleDarkMode);
 
+        // Use event delegation for dynamically added buttons in main area
         driverDisplayElement.addEventListener('click', function(event) {
             if (event.target && event.target.id === 'calculate-sim-button') {
                 calculateAndDisplaySimulatedStandings();
@@ -692,14 +718,25 @@
             if (event.target && event.target.id === 'simulator-back-button') {
                  displaySimulatorInput();
             }
+            if (event.target && event.target.id === 'resimulate-button') { // Listener for new button
+                 // Re-run prediction display
+                 const p1RanksById = { piastri: 1, norris: 2, hadjar: 3, hamilton: 4, lawson: 5, russell: 6, leclerc: 7, verstappen: 8, gasly: 9, sainz: 10, albon: 11, hulkenberg: 12, bortoleto: 13, ocon: 14, bearman: 15, antonelli: 16, alonso: 17, tsunoda: 18, stroll: 19, doohan: 20 };
+                 const p2RanksById = { norris: 1, russell: 2, leclerc: 3, hamilton: 4, verstappen: 5, tsunoda: 6, alonso: 7, hadjar: 8, antonelli: 9, sainz: 10, albon: 11, lawson: 12, gasly: 13, piastri: 14, stroll: 15, hulkenberg: 16, bearman: 17, ocon: 18, bortoleto: 19, doohan: 20 };
+                 drivers.forEach(d => {
+                     if (!p1RanksById.hasOwnProperty(d.id)) p1RanksById[d.id] = 21;
+                     if (!p2RanksById.hasOwnProperty(d.id)) p2RanksById[d.id] = 21;
+                 });
+                 displayWeightedPrediction(p1RanksById, p2RanksById);
+            }
         });
 
 
+        // --- Initial Setup ---
         if (sidebarContentContainer && driverDisplayElement && driversTab && standingsTab && simulatorTab && predictTab && darkModeIcon && htmlElement && sidebar) {
             const initialTheme = localStorage.getItem('theme') ||
                                (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             applyTheme(initialTheme);
-            switchTab('drivers');
+            switchTab('drivers'); // Initialize with Drivers tab active
         } else {
             console.error("Initialization failed: One or more critical DOM elements not found.");
             document.body.innerHTML = '<p class="text-red-500 p-4">Error initializing the application. Critical elements are missing.</p>';
