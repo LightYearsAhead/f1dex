@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 Driver Dex 2025</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Use Inter font */
+        html {
+             font-family: 'Inter', sans-serif;
+             height: 100%;
+        }
+        body {
+            height: 100%;
+            font-family: 'Inter', sans-serif;
+            @apply transition-colors duration-300 ease-in-out;
+        }
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            @apply bg-slate-100 dark:bg-slate-700 rounded-lg;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            @apply bg-slate-400 dark:bg-slate-500 rounded-lg;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            @apply bg-slate-500 dark:bg-slate-400;
+        }
+        /* Ensure consistent height for the display area */
+        #driver-display-wrapper {
+            min-height: 550px;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+            @apply custom-scrollbar p-4 md:p-6 bg-white dark:bg-slate-900;
+        }
+        /* Style for the driver image */
+        .driver-image {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 50%;
+            @apply border-4 border-white dark:border-slate-700;
+        }
+        /* Sidebar content height */
+        .sidebar-content-area {
+             height: calc(100vh - 140px);
+             overflow-y: auto;
+             @apply custom-scrollbar;
+        }
+        /* Style for selected driver list item */
+        .driver-list-item.selected {
+             @apply bg-red-100 dark:bg-red-900/50 font-semibold text-red-700 dark:text-red-200 border-l-4 border-red-500;
+        }
+        /* Style for flag image */
+        .flag-image {
+            width: 24px;
+            height: auto;
+            margin-right: 0.5rem;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        /* Standings table styling (Shared by Driver and Constructor) */
+        .standings-table {
+             @apply w-full text-sm border-collapse;
+        }
+        .standings-table th, .standings-table td {
+            @apply px-4 py-3 text-left border border-slate-200 dark:border-slate-700;
+        }
+        .standings-table thead th {
+            @apply bg-slate-100 dark:bg-slate-800 font-semibold text-slate-700 dark:text-slate-100 uppercase tracking-wider sticky top-0 border-b-2 border-slate-200 dark:border-slate-600;
+        }
+         .standings-table tbody tr {
+            @apply border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-150;
+        }
+         /* Driver Standings Highlights */
+         .standings-table tbody tr.rank-1 { @apply bg-amber-50 dark:bg-amber-900/30 font-medium; }
+         .standings-table tbody tr.rank-2 { @apply bg-slate-100 dark:bg-slate-700/50; }
+         .standings-table tbody tr.rank-3 { @apply bg-orange-100 dark:bg-orange-900/30; }
+
+        /* Icon styling */
+        .stat-icon {
+            width: 1em;
+            height: 1em;
+            display: inline-block;
+            vertical-align: -0.125em;
+            margin-right: 0.3em;
+            @apply opacity-70 dark:opacity-60;
+        }
+        /* Dark mode toggle button icon size */
+        #dark-mode-toggle img {
+            width: 1.25rem; /* w-5 */
+            height: 1.25rem; /* h-5 */
+        }
+
+    </style>
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="h-full bg-gradient-to-br from-slate-100 to-gray-200 dark:from-slate-900 dark:to-gray-800 p-4 md:p-8">
+
+    <div class="container mx-auto max-w-6xl bg-white dark:bg-slate-800 rounded-lg shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+        <header class="relative p-4 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex justify-center items-center">
+            <div class="text-center">
+                <h1 class="text-2xl md:text-3xl font-bold text-red-600 dark:text-red-500">F1 Driver Dex</h1>
+                <p class="text-center text-sm text-slate-500 dark:text-slate-300 mt-1">2025 Season Data (Stats as of April 4, 2025)</p>
+            </div>
+            <button id="dark-mode-toggle" title="Toggle Dark Mode" class="absolute top-3 right-3 p-2.5 rounded-full border border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-slate-800 transition-colors duration-150">
+                <img id="dark-mode-icon" src="" alt="Toggle Theme">
+            </button>
+        </header>
+
+        <div class="flex flex-col md:flex-row">
+            <aside class="w-full md:w-1/3 lg:w-1/4 border-r border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex flex-col">
+                <div class="flex border-b border-slate-200 dark:border-slate-700 p-2 space-x-2">
+                    <button id="drivers-tab"
+                            class="flex-1 px-3 py-2 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 dark:focus:ring-offset-slate-800 transition duration-150 ease-in-out text-center">
+                        Drivers
+                    </button>
+                    <button id="2025-tab"
+                            class="flex-1 px-3 py-2 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 dark:focus:ring-offset-slate-800 transition duration-150 ease-in-out text-center">
+                        Standings
+                    </button>
+                </div>
+
+                <div id="sidebar-content-container" class="sidebar-content-area flex-grow p-1">
+                    {/* Content updated by JS */}
+                </div>
+            </aside>
+
+            <main id="driver-display-wrapper" class="w-full md:w-2/3 lg:w-3/4 bg-white dark:bg-slate-900">
+                {/* Content updated by JS */}
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // --- Driver Data ---
+        const placeholderImg = 'https://placehold.co/150x150/cccccc/ffffff?text=No+Image';
+        const drivers = [
+             { id: 'verstappen', name: 'Max Verstappen', number: 1, team: 'Red Bull Racing', nationality: '🇳🇱 Dutch', flagCode: 'nl', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7d/Max_Verstappen_2017_Malaysia_3.jpg/440px-Max_Verstappen_2017_Malaysia_3.jpg', stats: { championships: 4, wins: 63, podiums: '100', poles: '30', gps: '190', '2025 points': '36' }, notes: 'Reigning World Champion (4x). Started 2025 with Red Bull.' },
+             { id: 'tsunoda', name: 'Yuki Tsunoda', number: 22, team: 'Red Bull Racing', nationality: '🇯🇵 Japanese', flagCode: 'jp', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Yuki_Tsunoda_2017_Macau_Grand_Prix.jpg/440px-Yuki_Tsunoda_2017_Macau_Grand_Prix.jpg', stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: '70', '2025 points': '3' }, notes: 'Moved from Racing Bulls to Red Bull after Race 2 of 2025.' },
+             { id: 'hamilton', name: 'Lewis Hamilton', number: 44, team: 'Ferrari', nationality: '🇬🇧 British', flagCode: 'gb', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/Lewis_Hamilton_2016_Malaysia_2.jpg/440px-Lewis_Hamilton_2016_Malaysia_2.jpg', stats: { championships: 7, wins: 105, podiums: '190', poles: '100', gps: '340', '2025 points': '9' }, notes: 'Joined Ferrari for the 2025 season after a long career with Mercedes.' },
+             { id: 'leclerc', name: 'Charles Leclerc', number: 16, team: 'Ferrari', nationality: '🇲🇨 Monégasque', flagCode: 'mc', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Charles_Leclerc_2016_European_F3_Spa.jpg/440px-Charles_Leclerc_2016_European_F3_Spa.jpg', stats: { championships: 0, wins: 8, podiums: '30', poles: '20', gps: '130', '2025 points': '8' }, notes: 'Partnering Lewis Hamilton at Ferrari.' },
+             { id: 'russell', name: 'George Russell', number: 63, team: 'Mercedes', nationality: '🇬🇧 British', flagCode: 'gb', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/George_Russell_2017_GP3_Spa_%28cropped%29.jpg/440px-George_Russell_2017_GP3_Spa_%28cropped%29.jpg', stats: { championships: 0, wins: 3, podiums: '10', poles: '1', gps: '110', '2025 points': '35' }, notes: 'Lead driver for Mercedes in 2025.' },
+             { id: 'antonelli', name: 'Andrea Kimi Antonelli', number: 12, team: 'Mercedes', nationality: '🇮🇹 Italian', flagCode: 'it', imageUrl: placeholderImg, stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: 'Rookie', '2025 points': '22' }, notes: 'Highly anticipated rookie, graduated directly from F2.' },
+             { id: 'norris', name: 'Lando Norris', number: 4, team: 'McLaren', nationality: '🇬🇧 British', flagCode: 'gb', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Lando_Norris_2017_Macau_Grand_Prix.jpg/440px-Lando_Norris_2017_Macau_Grand_Prix.jpg', stats: { championships: 0, wins: 1, podiums: '15', poles: '1', gps: '110', '2025 points': '44' }, notes: 'Long-term driver for McLaren.' },
+             { id: 'piastri', name: 'Oscar Piastri', number: 81, team: 'McLaren', nationality: '🇦🇺 Australian', flagCode: 'au', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Oscar_Piastri_Formula_2_driver.jpg/440px-Oscar_Piastri_Formula_2_driver.jpg', stats: { championships: 0, wins: 3, podiums: '5', poles: '0', gps: '30', '2025 points': '34' }, notes: 'Former F2 Champion, entering his third F1 season.' },
+             { id: 'alonso', name: 'Fernando Alonso', number: 14, team: 'Aston Martin', nationality: '🇪🇸 Spanish', flagCode: 'es', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Fernando_Alonso_2016_Malaysia.jpg/440px-Fernando_Alonso_2016_Malaysia.jpg', stats: { championships: 2, wins: 32, podiums: '100', poles: '20', gps: '380', '2025 points': '0' }, notes: 'Most experienced driver on the grid.' },
+             { id: 'stroll', name: 'Lance Stroll', number: 18, team: 'Aston Martin', nationality: '🇨🇦 Canadian', flagCode: 'ca', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Lance_Stroll_2017_Malaysia.jpg/440px-Lance_Stroll_2017_Malaysia.jpg', stats: { championships: 0, wins: 0, podiums: '3', poles: '1', gps: '150', '2025 points': '10' }, notes: 'Partnering Alonso at Aston Martin.' },
+             { id: 'gasly', name: 'Pierre Gasly', number: 10, team: 'Alpine', nationality: '🇫🇷 French', flagCode: 'fr', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Pierre_Gasly_2017_Malaysia.jpg/440px-Pierre_Gasly_2017_Malaysia.jpg', stats: { championships: 0, wins: 1, podiums: '4', poles: '0', gps: '140', '2025 points': '0' }, notes: 'Continuing with Alpine.' },
+             { id: 'doohan', name: 'Jack Doohan', number: 61, team: 'Alpine', nationality: '🇦🇺 Australian', flagCode: 'au', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Jack_Doohan_F2_2022_%28cropped%29.jpg/440px-Jack_Doohan_F2_2022_%28cropped%29.jpg', stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: 'Rookie', '2025 points': '0' }, notes: 'Rookie driver for Alpine in 2025.' },
+             { id: 'albon', name: 'Alex Albon', number: 23, team: 'Williams', nationality: '🇹🇭 Thai', flagCode: 'th', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Alexander_Albon_2017_GP3_Spa_%28cropped%29.jpg/440px-Alexander_Albon_2017_GP3_Spa_%28cropped%29.jpg', stats: { championships: 0, wins: 0, podiums: '2', poles: '0', gps: '90', '2025 points': '16' }, notes: 'Lead driver for Williams.' },
+             { id: 'sainz', name: 'Carlos Sainz', number: 55, team: 'Williams', nationality: '🇪🇸 Spanish', flagCode: 'es', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Carlos_Sainz_Jr_2016_Malaysia.jpg/440px-Carlos_Sainz_Jr_2016_Malaysia.jpg', stats: { championships: 0, wins: 4, podiums: '20', poles: '5', gps: '190', '2025 points': '1' }, notes: 'Joined Williams for 2025 after leaving Ferrari.' },
+             { id: 'lawson', name: 'Liam Lawson', number: 40, team: 'Racing Bulls', nationality: '🇳🇿 Kiwi', flagCode: 'nz', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Liam_Lawson_DTM_2021_Norisring_%28cropped%29.jpg/440px-Liam_Lawson_DTM_2021_Norisring_%28cropped%29.jpg', stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: '5', '2025 points': '0' }, notes: 'Started 2025 at Red Bull, moved back to Racing Bulls after Race 2.' },
+             { id: 'hadjar', name: 'Isack Hadjar', number: 37, team: 'Racing Bulls', nationality: '🇫🇷 French', flagCode: 'fr', imageUrl: placeholderImg, stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: 'Rookie', '2025 points': '0' }, notes: 'Rookie driver, former F2 competitor.' },
+             { id: 'hulkenberg', name: 'Nico Hülkenberg', number: 27, team: 'Kick Sauber', nationality: '🇩🇪 German', flagCode: 'de', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Nico_H%C3%BClkenberg_2016_Malaysia.jpg/440px-Nico_H%C3%BClkenberg_2016_Malaysia.jpg', stats: { championships: 0, wins: 0, podiums: '0', poles: '1', gps: '210', '2025 points': '6' }, notes: 'Joined Sauber (future Audi) for 2025.' },
+             { id: 'bortoleto', name: 'Gabriel Bortoleto', number: 3, team: 'Kick Sauber', nationality: '🇧🇷 Brazilian', flagCode: 'br', imageUrl: placeholderImg, stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: 'Rookie', '2025 points': '0' }, notes: 'Rookie driver, 2023 F3 Champion, 2024 F2 Champion.' },
+             { id: 'bearman', name: 'Oliver Bearman', number: 50, team: 'Haas', nationality: '🇬🇧 British', flagCode: 'gb', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Oliver_Bearman_F2_2023_%28cropped%29.jpg/440px-Oliver_Bearman_F2_2023_%28cropped%29.jpg', stats: { championships: 0, wins: 0, podiums: '0', poles: '0', gps: '2', '2025 points': '4' }, notes: 'Rookie driver, made F1 debut as reserve for Ferrari in 2024.' },
+             { id: 'ocon', name: 'Esteban Ocon', number: 31, team: 'Haas', nationality: '🇫🇷 French', flagCode: 'fr', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Esteban_Ocon_2017_Malaysia_2.jpg/440px-Esteban_Ocon_2017_Malaysia_2.jpg', stats: { championships: 0, wins: 1, podiums: '3', poles: '0', gps: '140', '2025 points': '10' }, notes: 'Joined Haas for the 2025 season after leaving Alpine.' }
+        ];
+
+        // --- Constructor Standings Data ---
+        const constructors = [
+            { name: 'McLaren', points: 78 }, { name: 'Mercedes', points: 57 }, { name: 'Red Bull Racing', points: 36 },
+            { name: 'Williams', points: 17 }, { name: 'Ferrari', points: 17 }, { name: 'Haas', points: 14 },
+            { name: 'Aston Martin', points: 0 }, { name: 'Alpine', points: 0 }, { name: 'Kick Sauber', points: 0 },
+            { name: 'Racing Bulls', points: 0 }
+        ];
+
+        // --- DOM Elements ---
+        const driverDisplayElement = document.getElementById('driver-display-wrapper');
+        const driversTab = document.getElementById('drivers-tab');
+        const tab2025 = document.getElementById('2025-tab');
+        const sidebarContentContainer = document.getElementById('sidebar-content-container');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const darkModeIcon = document.getElementById('dark-mode-icon');
+        const htmlElement = document.documentElement;
+        let driverListElement;
+
+        // --- Constants for Styling ---
+        const activeTabClasses = ['bg-red-600', 'text-white', 'hover:bg-red-700', 'dark:bg-red-500', 'dark:hover:bg-red-600'];
+        const inactiveTabClasses = ['bg-slate-100', 'text-slate-700', 'hover:bg-slate-200', 'dark:bg-slate-700', 'dark:text-slate-300', 'dark:hover:bg-slate-600'];
+        const iconUrl = {
+            championships: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/trophy.svg',
+            wins: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/medal.svg',
+            podiums: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/award.svg',
+            poles: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/gauge-circle.svg',
+            gps: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/route.svg',
+            points: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/list-checks.svg',
+            moon: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/moon.svg',
+            sun: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/sun.svg'
+        };
+
+        // --- State Variable ---
+        let currentActiveTab = 'drivers';
+
+        // --- Functions ---
+
+        function displayDriver(driver) {
+            const nationalityName = driver.nationality.split(' ').slice(1).join(' ') || '';
+            const driverHtml = `
+                <div class="bg-white dark:bg-slate-800 rounded-lg shadow-md w-full max-w-lg mx-auto border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    <div class="p-6 text-center border-b border-slate-100 dark:border-slate-700">
+                         <img src="${driver.imageUrl}" alt="Image of ${driver.name}" class="driver-image mx-auto mb-4 border-4 border-white dark:border-slate-700 shadow-lg" onerror="this.onerror=null; this.src='${placeholderImg}';">
+                        <h2 class="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-1">${driver.name} <span class="text-red-500 dark:text-red-400 font-normal">#${driver.number || '?'}</span></h2>
+                        <p class="text-md text-slate-600 dark:text-slate-300 mb-2">${driver.team}</p>
+                        <div class="flex items-center justify-center text-md text-slate-500 dark:text-slate-300">
+                            <img src="https://flagcdn.com/w40/${driver.flagCode}.png"
+                                 srcset="https://flagcdn.com/w80/${driver.flagCode}.png 2x"
+                                 alt="${nationalityName} Flag"
+                                 class="flag-image"
+                                 onerror="this.style.display='none'; this.nextSibling.textContent = '${driver.flagCode.toUpperCase()} ${nationalityName}';">
+                            <span>${driver.flagCode.toUpperCase()} ${nationalityName}</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold mb-4 text-slate-700 dark:text-slate-200 border-b dark:border-slate-600 pb-2">Career Stats</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm text-slate-700 dark:text-slate-200">
+                            <p class="flex items-center"><img src="${iconUrl.championships}" class="stat-icon" alt="Championships"> <span class="font-medium text-slate-800 dark:text-slate-100 mr-2">${driver.stats.championships}</span> Championships</p>
+                            <p class="flex items-center"><img src="${iconUrl.wins}" class="stat-icon" alt="Wins"> <span class="font-medium text-slate-800 dark:text-slate-100 mr-2">${driver.stats.wins}</span> Wins</p>
+                            <p class="flex items-center"><img src="${iconUrl.podiums}" class="stat-icon" alt="Podiums"> <span class="font-medium text-slate-800 dark:text-slate-100 mr-2">${driver.stats.podiums || 'N/A'}</span> Podiums</p>
+                            <p class="flex items-center"><img src="${iconUrl.poles}" class="stat-icon" alt="Poles"> <span class="font-medium text-slate-800 dark:text-slate-100 mr-2">${driver.stats.poles || 'N/A'}</span> Poles</p>
+                            <p class="flex items-center"><img src="${iconUrl.gps}" class="stat-icon" alt="GP Starts"> <span class="font-medium text-slate-800 dark:text-slate-100 mr-2">${driver.stats.gps || 'N/A'}</span> GP Starts</p>
+                            <p class="flex items-center"><img src="${iconUrl.points}" class="stat-icon" alt="2025 Points"> <span class="font-medium text-slate-800 dark:text-slate-100 mr-2">${driver.stats['2025 points'] !== undefined ? driver.stats['2025 points'] : 'N/A'}</span> 2025 Points</p>
+                        </div>
+                         <p class="text-xs text-slate-400 dark:text-slate-400 mt-4">*Career stats approx. as of April 4, 2025.</p>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-800/50 p-4 border-t border-slate-100 dark:border-slate-700">
+                         <h3 class="text-sm font-semibold mb-1 text-slate-600 dark:text-slate-200">Notes</h3>
+                         <p class="text-sm text-slate-500 dark:text-slate-300 italic">${driver.notes || 'No additional notes.'}</p>
+                    </div>
+                </div>`;
+             driverDisplayElement.innerHTML = driverHtml;
+        }
+
+        function populateDriverList() {
+            if (!sidebarContentContainer) return;
+            sidebarContentContainer.innerHTML = '';
+
+            const ul = document.createElement('ul');
+            ul.id = 'driver-list';
+            ul.className = 'py-1';
+            sidebarContentContainer.appendChild(ul);
+            driverListElement = ul;
+
+            drivers.forEach(driver => {
+                const li = document.createElement('li');
+                li.className = 'px-3 py-2 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/30 transition duration-150 ease-in-out rounded driver-list-item text-sm text-slate-700 dark:text-slate-100 hover:text-slate-900 dark:hover:text-white';
+                li.textContent = driver.name;
+                li.dataset.driverId = driver.id;
+                li.addEventListener('click', () => {
+                    if (currentActiveTab === 'drivers') {
+                        const currentSelected = driverListElement.querySelector('.driver-list-item.selected');
+                        if (currentSelected) {
+                            currentSelected.classList.remove('selected');
+                        }
+                        li.classList.add('selected');
+                        const selectedDriver = drivers.find(d => d.id === li.dataset.driverId);
+                        if (selectedDriver) {
+                            displayDriver(selectedDriver);
+                        }
+                    }
+                });
+                driverListElement.appendChild(li);
+            });
+        }
+
+        function displayDriverStandings() {
+            const sortedDrivers = [...drivers].sort((a, b) => {
+                const pointsA = Number(a.stats['2025 points']) || 0;
+                const pointsB = Number(b.stats['2025 points']) || 0;
+                return pointsB - pointsA;
+            });
+
+            let tableHtml = `
+                <h3 class="font-semibold text-xl mb-4 p-2 text-center text-slate-700 dark:text-slate-200">2025 Driver Standings</h3>
+                <div class="overflow-x-auto rounded-lg shadow border border-slate-200 dark:border-slate-700">
+                    <table class="standings-table mx-auto">
+                        <thead>
+                            <tr>
+                                <th class="w-1/12 text-center">Rank</th>
+                                <th class="w-4/12">Driver</th>
+                                <th class="w-5/12">Team</th>
+                                <th class="w-2/12 text-right">Points</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+            sortedDrivers.forEach((driver, index) => {
+                const baseRowClasses = 'border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-150';
+                let rankClass = '';
+                if (index === 0) rankClass = 'bg-amber-50 dark:bg-amber-900/30 font-medium';
+                else if (index === 1) rankClass = 'bg-slate-100 dark:bg-slate-700/50';
+                else if (index === 2) rankClass = 'bg-orange-100 dark:bg-orange-900/30';
+                else rankClass = 'bg-white dark:bg-slate-800';
+
+                tableHtml += `
+                    <tr class="${baseRowClasses} ${rankClass}">
+                        <td class="text-center font-medium text-slate-600 dark:text-slate-100">${index + 1}</td>
+                        <td class="text-slate-800 dark:text-slate-100">${driver.name}</td>
+                        <td class="text-slate-600 dark:text-slate-100">${driver.team}</td>
+                        <td class="text-right font-semibold text-slate-800 dark:text-slate-100">${driver.stats['2025 points']}</td>
+                    </tr>`;
+            });
+
+            tableHtml += `</tbody></table></div>`;
+            driverDisplayElement.innerHTML = tableHtml;
+        }
+
+        function displayConstructorStandings() {
+            if (!sidebarContentContainer) return;
+
+             const sortedConstructors = [...constructors].sort((a, b) => b.points - a.points);
+
+             let tableHtml = `
+                <h4 class="text-sm font-semibold mb-2 text-slate-600 dark:text-slate-100 uppercase tracking-wider text-center pt-2">Constructors</h4>
+                <div class="overflow-x-auto px-1 py-1">
+                    <table class="standings-table mx-auto text-xs">
+                        <thead>
+                            <tr>
+                                <th class="w-1/6 text-center">Rank</th>
+                                <th class="w-3/6">Team</th>
+                                <th class="w-2/6 text-right">Points</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+             sortedConstructors.forEach((team, index) => {
+                 const rowBgClass = index % 2 === 0 ? 'bg-white dark:bg-slate-800/60' : 'bg-slate-50 dark:bg-slate-700/60';
+                 tableHtml += `
+                    <tr class="${rowBgClass} border-b border-slate-100 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors duration-100">
+                        <td class="text-center font-medium text-slate-600 dark:text-slate-100">${index + 1}</td>
+                        <td class="text-slate-700 dark:text-slate-100">${team.name}</td>
+                        <td class="text-right font-semibold text-slate-700 dark:text-slate-100">${team.points}</td>
+                    </tr>`;
+             });
+
+             tableHtml += `</tbody></table></div>`;
+             sidebarContentContainer.innerHTML = tableHtml;
+        }
+
+        function displayRandomDriver() {
+            if (drivers.length === 0) {
+                 driverDisplayElement.innerHTML = '<p class="text-center text-slate-500 dark:text-slate-400">No drivers loaded.</p>';
+                 return;
+            };
+            const randomIndex = Math.floor(Math.random() * drivers.length);
+            const randomDriver = drivers[randomIndex];
+            displayDriver(randomDriver);
+
+            if (driverListElement){
+                const currentSelected = driverListElement.querySelector('.driver-list-item.selected');
+                if (currentSelected) {
+                    currentSelected.classList.remove('selected');
+                }
+                const listItem = driverListElement.querySelector(`.driver-list-item[data-driver-id="${randomDriver.id}"]`);
+                 if(listItem) {
+                     listItem.classList.add('selected');
+                 }
+             }
+        }
+
+
+        function switchTab(newActiveTab) {
+            currentActiveTab = newActiveTab;
+
+            driversTab.classList.remove(...activeTabClasses);
+            driversTab.classList.add(...inactiveTabClasses);
+            tab2025.classList.remove(...activeTabClasses);
+            tab2025.classList.add(...inactiveTabClasses);
+
+            if (newActiveTab === 'drivers') {
+                driversTab.classList.remove(...inactiveTabClasses);
+                driversTab.classList.add(...activeTabClasses);
+                populateDriverList();
+                displayRandomDriver();
+            } else if (newActiveTab === '2025') {
+                tab2025.classList.remove(...inactiveTabClasses);
+                tab2025.classList.add(...activeTabClasses);
+                displayConstructorStandings();
+                displayDriverStandings();
+            }
+        }
+
+        function applyTheme(theme) {
+            const isDark = theme === 'dark';
+            if (isDark) {
+                htmlElement.classList.add('dark');
+            } else {
+                htmlElement.classList.remove('dark');
+            }
+            if(darkModeIcon) {
+                darkModeIcon.src = isDark ? iconUrl.sun : iconUrl.moon;
+            }
+            localStorage.setItem('theme', theme);
+
+            if(driversTab && tab2025) {
+                const currentlyActiveButton = currentActiveTab === 'drivers' ? driversTab : tab2025;
+                const currentlyInactiveButton = currentActiveTab === 'drivers' ? tab2025 : driversTab;
+
+                currentlyActiveButton.classList.remove(...inactiveTabClasses);
+                currentlyActiveButton.classList.add(...activeTabClasses);
+
+                currentlyInactiveButton.classList.remove(...activeTabClasses);
+                currentlyInactiveButton.classList.add(...inactiveTabClasses);
+            }
+        }
+
+        function toggleDarkMode() {
+            const newTheme = htmlElement.classList.contains('dark') ? 'light' : 'dark';
+            applyTheme(newTheme);
+             if (currentActiveTab === 'drivers') {
+                const selectedLi = driverListElement?.querySelector('.driver-list-item.selected');
+                if (selectedLi) {
+                    const selectedDriver = drivers.find(d => d.id === selectedLi.dataset.driverId);
+                    if (selectedDriver) displayDriver(selectedDriver);
+                    else displayRandomDriver();
+                } else {
+                    displayRandomDriver();
+                }
+            } else if (currentActiveTab === '2025') {
+                displayDriverStandings();
+                displayConstructorStandings();
+            }
+        }
+
+        if(driversTab) driversTab.addEventListener('click', () => switchTab('drivers'));
+        if(tab2025) tab2025.addEventListener('click', () => switchTab('2025'));
+        if(darkModeToggle) darkModeToggle.addEventListener('click', toggleDarkMode);
+
+        if (sidebarContentContainer && driverDisplayElement && driversTab && tab2025 && darkModeIcon && htmlElement) {
+            const initialTheme = localStorage.getItem('theme') ||
+                               (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            applyTheme(initialTheme);
+            switchTab('drivers');
+        } else {
+            console.error("Initialization failed: One or more critical DOM elements not found.");
+            document.body.innerHTML = '<p class="text-red-500 p-4">Error initializing the application. Critical elements are missing.</p>';
+        }
+
+    </script>
+
+</body>
+</html>
