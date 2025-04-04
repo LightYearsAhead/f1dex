@@ -31,10 +31,9 @@
         }
         /* Ensure consistent height for the display area */
         #driver-display-wrapper {
-            min-height: 550px;
-            max-height: calc(100vh - 100px);
+            height: calc(100vh - 150px); /* Adjust based on final header+tabs height */
             overflow-y: auto;
-            @apply custom-scrollbar p-4 md:p-6 bg-white dark:bg-slate-900;
+            @apply custom-scrollbar p-4 md:p-6 bg-white dark:bg-slate-900 transition-all duration-300 ease-in-out;
         }
         /* Style for the driver image */
         .driver-image {
@@ -46,7 +45,7 @@
         }
         /* Sidebar content height */
         .sidebar-content-area {
-             height: calc(100vh - 140px);
+             height: calc(100vh - 150px); /* Adjust based on final header+tabs height */
              overflow-y: auto;
              @apply custom-scrollbar;
         }
@@ -94,6 +93,14 @@
             width: 1.25rem; /* w-5 */
             height: 1.25rem; /* h-5 */
         }
+        /* Simulator input styling */
+        .sim-input {
+            @apply p-1 border border-slate-300 dark:border-slate-600 rounded-md w-16 text-right text-sm dark:bg-slate-700 dark:text-slate-100 focus:ring-1 focus:ring-red-500 focus:border-red-500;
+        }
+        /* Styling for header tabs */
+         .header-tab-button {
+             @apply flex-1 px-3 py-2 text-xs sm:text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 dark:focus:ring-offset-slate-800 transition duration-150 ease-in-out text-center;
+         }
 
     </style>
      <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -102,37 +109,36 @@
 </head>
 <body class="h-full bg-gradient-to-br from-slate-100 to-gray-200 dark:from-slate-900 dark:to-gray-800 p-4 md:p-8">
 
-    <div class="container mx-auto max-w-6xl bg-white dark:bg-slate-800 rounded-lg shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
-        <header class="relative p-4 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex justify-center items-center">
+    <div class="container mx-auto max-w-6xl bg-white dark:bg-slate-800 rounded-lg shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700 flex flex-col" style="height: calc(100vh - 4rem);">
+        <header class="relative p-4 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex justify-center items-center shrink-0">
             <div class="text-center">
-                <h1 class="text-2xl md:text-3xl font-bold text-red-600 dark:text-red-500">F1 Driver Dex</h1>
-                <p class="text-center text-sm text-slate-500 dark:text-slate-300 mt-1">2025 Season Data (Stats as of April 4, 2025)</p>
+                <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-red-600 dark:text-red-500">F1 Driver Dex</h1>
+                <p class="text-center text-xs sm:text-sm text-slate-500 dark:text-slate-300 mt-1">2025 Season Data (Stats as of April 4, 2025)</p>
             </div>
             <button id="dark-mode-toggle" title="Toggle Dark Mode" class="absolute top-3 right-3 p-2.5 rounded-full border border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-slate-800 transition-colors duration-150">
                 <img id="dark-mode-icon" src="" alt="Toggle Theme">
             </button>
         </header>
 
-        <div class="flex flex-col md:flex-row">
-            <aside class="w-full md:w-1/3 lg:w-1/4 border-r border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex flex-col">
-                <div class="flex border-b border-slate-200 dark:border-slate-700 p-2 space-x-2">
-                    <button id="drivers-tab"
-                            class="flex-1 px-3 py-2 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 dark:focus:ring-offset-slate-800 transition duration-150 ease-in-out text-center">
-                        Drivers
-                    </button>
-                    <button id="2025-tab"
-                            class="flex-1 px-3 py-2 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500 dark:focus:ring-offset-slate-800 transition duration-150 ease-in-out text-center">
-                        Standings
-                    </button>
-                </div>
+        <div class="flex border-b border-slate-200 dark:border-slate-700 p-1.5 space-x-1.5 bg-slate-100 dark:bg-slate-800/50 shrink-0">
+             <button id="drivers-tab" class="header-tab-button">
+                 Drivers
+            </button>
+            <button id="standings-tab" class="header-tab-button">
+                 Standings
+            </button>
+            <button id="simulator-tab" class="header-tab-button">
+                 Simulator
+            </button>
+        </div>
 
+        <div class="flex flex-row flex-grow overflow-hidden">
+            <aside id="sidebar" class="w-full md:w-1/3 lg:w-1/4 border-r border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex flex-col shrink-0 hidden">
                 <div id="sidebar-content-container" class="sidebar-content-area flex-grow p-1">
-                    {/* Content updated by JS */}
                 </div>
             </aside>
 
-            <main id="driver-display-wrapper" class="w-full md:w-2/3 lg:w-3/4 bg-white dark:bg-slate-900">
-                {/* Content updated by JS */}
+            <main id="driver-display-wrapper" class="w-full bg-white dark:bg-slate-900">
             </main>
         </div>
     </div>
@@ -163,27 +169,19 @@
              { id: 'ocon', name: 'Esteban Ocon', number: 31, team: 'Haas', nationality: '🇫🇷 French', flagCode: 'fr', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/79/Esteban_Ocon_2017_Malaysia_2.jpg/440px-Esteban_Ocon_2017_Malaysia_2.jpg', stats: { championships: 0, wins: 1, podiums: '3', poles: '0', gps: '140', '2025 points': '10' }, notes: 'Joined Haas for the 2025 season after leaving Alpine.' }
         ];
 
-        // --- Constructor Standings Data ---
-        const constructors = [
-            { name: 'McLaren', points: 78 }, { name: 'Mercedes', points: 57 }, { name: 'Red Bull Racing', points: 36 },
-            { name: 'Williams', points: 17 }, { name: 'Ferrari', points: 17 }, { name: 'Haas', points: 14 },
-            { name: 'Aston Martin', points: 0 }, { name: 'Alpine', points: 0 }, { name: 'Kick Sauber', points: 0 },
-            { name: 'Racing Bulls', points: 0 }
-        ];
-
-        // --- DOM Elements ---
         const driverDisplayElement = document.getElementById('driver-display-wrapper');
         const driversTab = document.getElementById('drivers-tab');
-        const tab2025 = document.getElementById('2025-tab');
+        const standingsTab = document.getElementById('standings-tab');
+        const simulatorTab = document.getElementById('simulator-tab');
+        const sidebar = document.getElementById('sidebar');
         const sidebarContentContainer = document.getElementById('sidebar-content-container');
         const darkModeToggle = document.getElementById('dark-mode-toggle');
         const darkModeIcon = document.getElementById('dark-mode-icon');
         const htmlElement = document.documentElement;
         let driverListElement;
 
-        // --- Constants for Styling ---
-        const activeTabClasses = ['bg-red-600', 'text-white', 'hover:bg-red-700', 'dark:bg-red-500', 'dark:hover:bg-red-600'];
-        const inactiveTabClasses = ['bg-slate-100', 'text-slate-700', 'hover:bg-slate-200', 'dark:bg-slate-700', 'dark:text-slate-300', 'dark:hover:bg-slate-600'];
+        const activeTabClasses = ['bg-red-600', 'text-white', 'shadow-md', 'border-red-600', 'dark:bg-red-500', 'dark:border-red-500'];
+        const inactiveTabClasses = ['bg-transparent', 'text-slate-600', 'hover:bg-slate-100', 'hover:border-slate-300', 'dark:text-slate-300', 'dark:hover:bg-slate-700', 'dark:hover:border-slate-600', 'border-slate-300', 'dark:border-slate-600', 'border'];
         const iconUrl = {
             championships: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/trophy.svg',
             wins: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/medal.svg',
@@ -195,10 +193,7 @@
             sun: 'https://cdn.jsdelivr.net/npm/lucide-static@latest/icons/sun.svg'
         };
 
-        // --- State Variable ---
         let currentActiveTab = 'drivers';
-
-        // --- Functions ---
 
         function displayDriver(driver) {
             const nationalityName = driver.nationality.split(' ').slice(1).join(' ') || '';
@@ -311,38 +306,6 @@
             driverDisplayElement.innerHTML = tableHtml;
         }
 
-        function displayConstructorStandings() {
-            if (!sidebarContentContainer) return;
-
-             const sortedConstructors = [...constructors].sort((a, b) => b.points - a.points);
-
-             let tableHtml = `
-                <h4 class="text-sm font-semibold mb-2 text-slate-600 dark:text-slate-100 uppercase tracking-wider text-center pt-2">Constructors</h4>
-                <div class="overflow-x-auto px-1 py-1">
-                    <table class="standings-table mx-auto text-xs">
-                        <thead>
-                            <tr>
-                                <th class="w-1/6 text-center">Rank</th>
-                                <th class="w-3/6">Team</th>
-                                <th class="w-2/6 text-right">Points</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
-
-             sortedConstructors.forEach((team, index) => {
-                 const rowBgClass = index % 2 === 0 ? 'bg-white dark:bg-slate-800/60' : 'bg-slate-50 dark:bg-slate-700/60';
-                 tableHtml += `
-                    <tr class="${rowBgClass} border-b border-slate-100 dark:border-slate-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors duration-100">
-                        <td class="text-center font-medium text-slate-600 dark:text-slate-100">${index + 1}</td>
-                        <td class="text-slate-700 dark:text-slate-100">${team.name}</td>
-                        <td class="text-right font-semibold text-slate-700 dark:text-slate-100">${team.points}</td>
-                    </tr>`;
-             });
-
-             tableHtml += `</tbody></table></div>`;
-             sidebarContentContainer.innerHTML = tableHtml;
-        }
-
         function displayRandomDriver() {
             if (drivers.length === 0) {
                  driverDisplayElement.innerHTML = '<p class="text-center text-slate-500 dark:text-slate-400">No drivers loaded.</p>';
@@ -364,25 +327,118 @@
              }
         }
 
+        function displaySimulatorInput() {
+            let inputHtml = `<div class="max-w-xl mx-auto p-4 bg-white dark:bg-slate-800 rounded-lg shadow border dark:border-slate-700">
+                <h3 class="font-semibold text-xl mb-4 text-center text-slate-700 dark:text-slate-200">Next Race Simulator</h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-4 text-center">Enter hypothetical points scored in the next race:</p>
+                <div class="space-y-2 max-h-96 overflow-y-auto custom-scrollbar pr-2">`;
+
+            drivers.forEach(driver => {
+                inputHtml += `
+                    <div class="flex justify-between items-center text-sm">
+                        <label for="sim-points-${driver.id}" class="text-slate-700 dark:text-slate-200">${driver.name} <span class="text-xs text-slate-500 dark:text-slate-400">(${driver.team})</span></label>
+                        <input type="number" min="0" value="0" id="sim-points-${driver.id}" class="sim-input" />
+                    </div>
+                `;
+            });
+
+            inputHtml += `</div>
+                <div class="text-center mt-6">
+                    <button id="calculate-sim-button" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-slate-800 transition-colors duration-150">Calculate New Standings</button>
+                </div>
+            </div>`;
+            driverDisplayElement.innerHTML = inputHtml;
+        }
+
+        function calculateAndDisplaySimulatedStandings() {
+            let simulatedDrivers = drivers.map(driver => {
+                const currentPoints = Number(driver.stats['2025 points']) || 0;
+                const simInput = document.getElementById(`sim-points-${driver.id}`);
+                const addedPoints = simInput ? (Number(simInput.value) || 0) : 0;
+                return {
+                    ...driver,
+                    simulatedPoints: currentPoints + addedPoints,
+                    pointsAdded: addedPoints
+                };
+            });
+
+            simulatedDrivers.sort((a, b) => b.simulatedPoints - a.simulatedPoints);
+
+            let tableHtml = `
+                <h3 class="font-semibold text-xl mb-4 p-2 text-center text-slate-700 dark:text-slate-200">Simulated Standings</h3>
+                 <p class="text-center text-xs text-slate-500 dark:text-slate-400 mb-4">(Based on your inputs)</p>
+                <div class="overflow-x-auto rounded-lg shadow border border-slate-200 dark:border-slate-700">
+                    <table class="standings-table mx-auto">
+                        <thead>
+                            <tr>
+                                <th class="w-1/12 text-center">Rank</th>
+                                <th class="w-4/12">Driver</th>
+                                <th class="w-4/12">Team</th>
+                                <th class="w-1/12 text-right">Added</th>
+                                <th class="w-2/12 text-right">Total Pts</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+            simulatedDrivers.forEach((driver, index) => {
+                const baseRowClasses = 'border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors duration-150';
+                let rankClass = '';
+                if (index === 0) rankClass = 'bg-amber-50 dark:bg-amber-900/30 font-medium';
+                else if (index === 1) rankClass = 'bg-slate-100 dark:bg-slate-700/50';
+                else if (index === 2) rankClass = 'bg-orange-100 dark:bg-orange-900/30';
+                else rankClass = 'bg-white dark:bg-slate-800';
+
+                tableHtml += `
+                    <tr class="${baseRowClasses} ${rankClass}">
+                        <td class="text-center font-medium text-slate-600 dark:text-slate-100">${index + 1}</td>
+                        <td class="text-slate-800 dark:text-slate-100">${driver.name}</td>
+                        <td class="text-slate-600 dark:text-slate-100">${driver.team}</td>
+                        <td class="text-right text-green-600 dark:text-green-400 text-xs">+${driver.pointsAdded}</td>
+                        <td class="text-right font-semibold text-slate-800 dark:text-slate-100">${driver.simulatedPoints}</td>
+                    </tr>`;
+            });
+
+            tableHtml += `</tbody></table></div>
+             <div class="text-center mt-4">
+                 <button id="simulator-back-button" class="mt-4 px-3 py-1.5 text-sm bg-slate-500 text-white rounded-md hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 dark:bg-slate-600 dark:hover:bg-slate-700 dark:focus:ring-offset-slate-900 transition-colors duration-150">Back to Input</button>
+             </div>
+             `;
+            driverDisplayElement.innerHTML = tableHtml;
+        }
+
 
         function switchTab(newActiveTab) {
             currentActiveTab = newActiveTab;
 
             driversTab.classList.remove(...activeTabClasses);
             driversTab.classList.add(...inactiveTabClasses);
-            tab2025.classList.remove(...activeTabClasses);
-            tab2025.classList.add(...inactiveTabClasses);
+            standingsTab.classList.remove(...activeTabClasses);
+            standingsTab.classList.add(...inactiveTabClasses);
+            simulatorTab.classList.remove(...activeTabClasses);
+            simulatorTab.classList.add(...inactiveTabClasses);
 
             if (newActiveTab === 'drivers') {
                 driversTab.classList.remove(...inactiveTabClasses);
                 driversTab.classList.add(...activeTabClasses);
+                sidebar.classList.remove('hidden');
+                driverDisplayElement.classList.remove('md:w-full');
+                driverDisplayElement.classList.add('md:w-2/3', 'lg:w-3/4');
                 populateDriverList();
                 displayRandomDriver();
-            } else if (newActiveTab === '2025') {
-                tab2025.classList.remove(...inactiveTabClasses);
-                tab2025.classList.add(...activeTabClasses);
-                displayConstructorStandings();
+            } else if (newActiveTab === 'standings') {
+                standingsTab.classList.remove(...inactiveTabClasses);
+                standingsTab.classList.add(...activeTabClasses);
+                sidebar.classList.add('hidden');
+                driverDisplayElement.classList.remove('md:w-2/3', 'lg:w-3/4');
+                driverDisplayElement.classList.add('md:w-full');
                 displayDriverStandings();
+            } else if (newActiveTab === 'simulator') {
+                 simulatorTab.classList.remove(...inactiveTabClasses);
+                 simulatorTab.classList.add(...activeTabClasses);
+                 sidebar.classList.add('hidden');
+                 driverDisplayElement.classList.remove('md:w-2/3', 'lg:w-3/4');
+                 driverDisplayElement.classList.add('md:w-full');
+                 displaySimulatorInput();
             }
         }
 
@@ -398,41 +454,49 @@
             }
             localStorage.setItem('theme', theme);
 
-            if(driversTab && tab2025) {
-                const currentlyActiveButton = currentActiveTab === 'drivers' ? driversTab : tab2025;
-                const currentlyInactiveButton = currentActiveTab === 'drivers' ? tab2025 : driversTab;
+            if(driversTab && standingsTab && simulatorTab) {
+                 let currentlyActiveButton;
+                 if (currentActiveTab === 'drivers') currentlyActiveButton = driversTab;
+                 else if (currentActiveTab === 'standings') currentlyActiveButton = standingsTab;
+                 else currentlyActiveButton = simulatorTab;
 
-                currentlyActiveButton.classList.remove(...inactiveTabClasses);
-                currentlyActiveButton.classList.add(...activeTabClasses);
+                 driversTab.classList.remove(...activeTabClasses, ...inactiveTabClasses);
+                 standingsTab.classList.remove(...activeTabClasses, ...inactiveTabClasses);
+                 simulatorTab.classList.remove(...activeTabClasses, ...inactiveTabClasses);
 
-                currentlyInactiveButton.classList.remove(...activeTabClasses);
-                currentlyInactiveButton.classList.add(...inactiveTabClasses);
+                 driversTab.classList.add(...inactiveTabClasses);
+                 standingsTab.classList.add(...inactiveTabClasses);
+                 simulatorTab.classList.add(...inactiveTabClasses);
+
+                 if (currentlyActiveButton) {
+                    currentlyActiveButton.classList.remove(...inactiveTabClasses);
+                    currentlyActiveButton.classList.add(...activeTabClasses);
+                 }
             }
         }
 
         function toggleDarkMode() {
             const newTheme = htmlElement.classList.contains('dark') ? 'light' : 'dark';
             applyTheme(newTheme);
-             if (currentActiveTab === 'drivers') {
-                const selectedLi = driverListElement?.querySelector('.driver-list-item.selected');
-                if (selectedLi) {
-                    const selectedDriver = drivers.find(d => d.id === selectedLi.dataset.driverId);
-                    if (selectedDriver) displayDriver(selectedDriver);
-                    else displayRandomDriver();
-                } else {
-                    displayRandomDriver();
-                }
-            } else if (currentActiveTab === '2025') {
-                displayDriverStandings();
-                displayConstructorStandings();
-            }
+            switchTab(currentActiveTab);
         }
 
         if(driversTab) driversTab.addEventListener('click', () => switchTab('drivers'));
-        if(tab2025) tab2025.addEventListener('click', () => switchTab('2025'));
+        if(standingsTab) standingsTab.addEventListener('click', () => switchTab('standings'));
+        if(simulatorTab) simulatorTab.addEventListener('click', () => switchTab('simulator'));
         if(darkModeToggle) darkModeToggle.addEventListener('click', toggleDarkMode);
 
-        if (sidebarContentContainer && driverDisplayElement && driversTab && tab2025 && darkModeIcon && htmlElement) {
+        driverDisplayElement.addEventListener('click', function(event) {
+            if (event.target && event.target.id === 'calculate-sim-button') {
+                calculateAndDisplaySimulatedStandings();
+            }
+            if (event.target && event.target.id === 'simulator-back-button') {
+                 displaySimulatorInput();
+            }
+        });
+
+
+        if (sidebarContentContainer && driverDisplayElement && driversTab && standingsTab && simulatorTab && darkModeIcon && htmlElement && sidebar) {
             const initialTheme = localStorage.getItem('theme') ||
                                (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
             applyTheme(initialTheme);
